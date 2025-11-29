@@ -12,6 +12,7 @@ func main() {
 	if err != nil {
 		return
 	}
+	_, _ = db.Exec("TRUNCATE TABLE password_entries") // сбрасывает auto_increment
 
 	if err := db.Ping(); err != nil {
 		log.Fatal(err)
@@ -38,6 +39,30 @@ func main() {
 	} else {
 		for _, entry := range ent {
 			fmt.Printf("%d. Сервис: %s | Логин: %s | Пароль: %s |\nОписание: %s\n", entry.ID, entry.Service, entry.Username, entry.Password, entry.Description)
+		}
+	}
+	showAllPasswords(pm)
+
+	testDeleting := pm.DeletePasswordEntry(1)
+	if testDeleting != nil {
+		return
+	}
+	showAllPasswords(pm)
+}
+
+func showAllPasswords(pm *modules.PasswordManager) {
+	ent, err := pm.GetAllPasswords()
+	if err != nil {
+		log.Fatal("❌ Ошибка получения паролей:", err)
+	}
+
+	if len(ent) == 0 {
+		fmt.Println("📭 База данных пустая")
+	} else {
+		fmt.Printf("📊 Всего записей: %d\n", len(ent))
+		for _, entry := range ent {
+			fmt.Printf("   ID: %d | Сервис: %s | Логин: %s | Пароль: %s\n",
+				entry.ID, entry.Service, entry.Username, entry.Password)
 		}
 	}
 }

@@ -2,6 +2,7 @@ package modules
 
 import (
 	"database/sql"
+	"log"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -30,11 +31,26 @@ func NewPasswordManager(db *sql.DB, masterKey []byte) *PasswordManager {
 	}
 }
 
+//Создания пароля
+
 func (pm *PasswordManager) CreatePasswordEntry(service, username, password, description string) error {
 	_, err := pm.db.Exec( // exec не возвращает данные, --> нам не нужно первое значение
 		`INSERT INTO password_entries(service, username, password, description) VALUES (?, ?, ?, ?)`,
 		service, username, password, description,
 	)
+	return err
+}
+
+// Удаление пароля
+
+func (pm *PasswordManager) DeletePasswordEntry(id int) error {
+	query := `DELETE FROM password_entries WHERE ID = ?`
+
+	_, err := pm.db.Exec(query, id)
+	if err != nil {
+		log.Printf("Ошибка удаления пароля %v", err.Error())
+	}
+
 	return err
 }
 
