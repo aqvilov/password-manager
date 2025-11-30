@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"password-manager/modules"
+	"password/modules"
 )
 
 func main() {
@@ -20,7 +20,12 @@ func main() {
 	}
 	fmt.Println("Успешное подключение к БД!")
 
-	defer db.Close()
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(db)
 
 	pm := modules.NewPasswordManager(db, []byte("123456"))
 

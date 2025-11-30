@@ -122,7 +122,7 @@ func (pm *PasswordManager) UpdatePasswordInteractive() error {
 	}
 
 	if AllInfo == nil { // если значение нулевое
-		fmt.Errorf("Запись с ID %d не найдена!", id)
+		return fmt.Errorf("Запись с ID %d не найдена!", id)
 	}
 
 	fmt.Println("\n Текущие данные:")
@@ -143,34 +143,65 @@ func (pm *PasswordManager) UpdatePasswordInteractive() error {
 	fmt.Println("Выберите номер: ")
 	fmt.Scanln(&choice)
 
-	updates := make(map[string]string)
-
 	switch choice {
 	case 0:
 		fmt.Println("❌ Отмена операции")
 		return nil
 	case 1: // меняем название сервиса
 		var newService string
-		fmt.Scanln(&newService)
-		updates["service"] = newService
+		fmt.Printf("Текущий сервис: %s\n", AllInfo.Service)
+		fmt.Print("Новый серис: ")
+		fmt.Scanln(&newService) //--------- -> ОБНОВИТ SERVICE ТОЛЬКО ГДЕ ID == ID
+		_, err1 := pm.db.Exec("UPDATE password_entries SET service=? WHERE id = ?", newService, id)
+		if err1 != nil {
+			return fmt.Errorf("ошибка обновления сервиса: %v", err)
+		}
+
 	case 2:
 		var newUsername string
+		fmt.Printf("Текущий логин: %s\n", AllInfo.Username)
+		fmt.Print("Новый логин: ")
 		fmt.Scanln(&newUsername)
-		updates["username"] = newUsername
+		_, err2 := pm.db.Exec("UPDATE password_entries SET username=? WHERE id=?", newUsername, id)
+		if err2 != nil {
+			return fmt.Errorf("ошибка обновления логина: %v", err)
+		}
 	case 3:
 		var newPassword string
+		fmt.Printf("Текущий пароль: %s\n", AllInfo.Password)
+		fmt.Print("Новый пароль: ")
 		fmt.Scanln(&newPassword)
-		updates["password"] = newPassword
+		_, err3 := pm.db.Exec("UPDATE password_entries SET password=? WHERE id=?", newPassword, id)
+		if err3 != nil {
+			return fmt.Errorf("ошибка обновления пароля: %v", err3)
+		}
 	case 4:
 		var newDescription string
+		fmt.Printf("Текущее описание: %s\n", AllInfo.Description)
+		fmt.Print("Новое описание: ")
 		fmt.Scanln(&newDescription)
-		updates["description"] = newDescription
+		_, err4 := pm.db.Exec("UPDATE	password_entries SET description=? WHERE id=?", newDescription, id)
+		if err4 != nil {
+			return fmt.Errorf("ошибка обновления описания: %v", err4)
+		}
 	case 5:
 		var Service, Username, Password, Description string
-		fmt.Scanln(&Service, &Username, &Password, &Description)
-		pm.CreatePasswordEntry(Service, Username, Password, Description)
+		fmt.Print("Новый сервис: ")
+		fmt.Scanln(&Service)
+		fmt.Print("Новый логин: ")
+		fmt.Scanln(&Username)
+		fmt.Print("Новый пароль: ")
+		fmt.Scanln(&Password)
+		fmt.Print("Новое описание: ")
+		fmt.Scanln(&Description)
+
+		_, err5 := pm.db.Exec("UPDATE password_entries SET (service, username, password, description)=(?, ?, ?, ?) WHERE id=?",
+			Service, Username, Password, Description, id)
+		if err5 != nil {
+			return fmt.Errorf("ошибка обновления данных: %v", err5)
+		}
 	default:
-		return fmt.Errorf("Неверный выбор.")
+		return fmt.Errorf("неверный выбор")
 	}
 
 	return nil
