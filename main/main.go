@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"password/modules"
+	"password-manager/modules"
 )
 
 func main() {
@@ -12,6 +12,7 @@ func main() {
 	if err != nil {
 		return
 	}
+
 	_, _ = db.Exec("TRUNCATE TABLE password_entries") // сбрасывает auto_increment
 
 	if err := db.Ping(); err != nil {
@@ -25,8 +26,12 @@ func main() {
 
 	fmt.Println("Добавляем тестовый пароль")
 	err1 := pm.CreatePasswordEntry("Telegram", "Aqvi", "123456", "test")
+	err2 := pm.CreatePasswordEntry("Telegram2", "Aqvi", "123456", "test")
 	if err1 != nil {
 		log.Fatal(err1)
+	}
+	if err2 != nil {
+		log.Fatal(err2)
 	}
 	fmt.Println("Пароль добавлен!")
 
@@ -48,6 +53,13 @@ func main() {
 		return
 	}
 	showAllPasswords(pm)
+
+	err15 := pm.UpdatePasswordInteractive()
+	if err15 != nil {
+		return
+	}
+	showAllPasswords(pm)
+
 }
 
 func showAllPasswords(pm *modules.PasswordManager) {
