@@ -2,6 +2,7 @@ package modules
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -54,6 +55,8 @@ func (pm *PasswordManager) DeletePasswordEntry(id int) error {
 	return err
 }
 
+// Получение всех паролей
+
 func (pm *PasswordManager) GetAllPasswords() ([]PasswordEntry, error) {
 	command := `SELECT id, service, username, password, description FROM password_entries ORDER BY id`
 
@@ -80,5 +83,96 @@ func (pm *PasswordManager) GetAllPasswords() ([]PasswordEntry, error) {
 
 	}
 	return entries, nil
+
+}
+
+//ЧАСТИЧНОЕ ИЗМЕНЕНИЕ КАКОГО-ТО ПАРОЛЯ
+
+func (pm *PasswordManager) UpdatePasswordInteractive() error {
+	fmt.Println("Все текущие пароли: ")
+	show, err := pm.GetAllPasswords()
+	if err != nil {
+		return err
+	}
+
+	if len(show) == 0 {
+		return fmt.Errorf("Ошибка, у вас нет никаких паролей")
+	}
+
+	for _, entry := range show {
+		fmt.Printf("ID: %d | Сервис: %s | Логин: %s\n",
+			entry.ID, entry.Service, entry.Username)
+	}
+
+	// спрашиваем id, который надо менять
+	var id int
+	fmt.Print("\n🎯 Введите ID записи для изменения и нажмите Enter: ")
+	_, err12 := fmt.Scanln(&id) // Scnaln - в отличии от Scan, читает ДО НАЖАТИЯ ENTER!!!
+	if err12 != nil {
+		return fmt.Errorf("ошибка ввода выбора: %v", err)
+	}
+
+	//Теперь мы должны найти все данные, которые есть в введенном id
+	var AllInfo *PasswordEntry
+	for _, entry := range show {
+		if entry.ID == id {
+			AllInfo = &entry
+			break
+		}
+	}
+
+	if AllInfo == nil { // если значение нулевое
+		fmt.Errorf("Запись с ID %d не найдена!", id)
+	}
+
+	fmt.Println("\n Текущие данные:")
+	fmt.Printf("1. Сервис: %s\n", AllInfo.Service)
+	fmt.Printf("2. Логин: %s\n", AllInfo.Username)
+	fmt.Printf("3. Пароль: %s\n", AllInfo.Password)
+	fmt.Printf("4. Описание: %s\n", AllInfo.Description)
+
+	fmt.Println("\n Что вы хотите изменить?")
+	fmt.Println("   1 - Сервис")    // 1
+	fmt.Println("   2 - Логин")     // 2
+	fmt.Println("   3 - Пароль")    // 3
+	fmt.Println("   4 - Описание")  // 4
+	fmt.Println("   5 - Всё сразу") // 5
+	fmt.Println("   0 - Отмена")    // 0
+
+	var choice int
+	fmt.Println("Выберите номер: ")
+	fmt.Scanln(&choice)
+
+	updates := make(map[string]string)
+
+	switch choice {
+	case 0:
+		fmt.Println("❌ Отмена операции")
+		return nil
+	case 1: // меняем название сервиса
+		var newService string
+		fmt.Scanln(&newService)
+		updates["service"] = newService
+	case 2:
+		var newUsername string
+		fmt.Scanln(&newUsername)
+		updates["username"] = newUsername
+	case 3:
+		var newPassword string
+		fmt.Scanln(&newPassword)
+		updates["password"] = newPassword
+	case 4:
+		var newDescription string
+		fmt.Scanln(&newDescription)
+		updates["description"] = newDescription
+	case 5:
+		var Service, Username, Password, Description string
+		fmt.Scanln(&Service, &Username, &Password, &Description)
+		pm.CreatePasswordEntry(Service, Username, Password, Description)
+	default:
+		return fmt.Errorf("Неверный выбор.")
+	}
+
+	return nil
 
 }
