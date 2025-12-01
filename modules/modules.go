@@ -183,12 +183,18 @@ func (pm *PasswordManager) UpdatePasswordInteractive() error {
 		if err2 != nil {
 			return fmt.Errorf("ошибка обновления логина: %v", err)
 		}
-	case 3:
+	case 3: // тут тоже шифруем по новой пароль!
 		var newPassword string
 		fmt.Printf("Текущий пароль: %s\n", AllInfo.Password)
 		fmt.Print("Новый пароль: ")
 		fmt.Scanln(&newPassword)
-		_, err3 := pm.db.Exec("UPDATE password_entries SET password=? WHERE id=?", newPassword, id)
+
+		EncryptedPassword, err := pm.Encrypt(newPassword)
+		if err != nil {
+			return fmt.Errorf("ошибка шифрования пароля во время его смены %v", err)
+		}
+
+		_, err3 := pm.db.Exec("UPDATE password_entries SET password=? WHERE id=?", EncryptedPassword, id)
 		if err3 != nil {
 			return fmt.Errorf("ошибка обновления пароля: %v", err3)
 		}
@@ -201,7 +207,7 @@ func (pm *PasswordManager) UpdatePasswordInteractive() error {
 		if err4 != nil {
 			return fmt.Errorf("ошибка обновления описания: %v", err4)
 		}
-	case 5:
+	case 5: // и здесь надо тоже зашифровать пароль!!!
 		var Service, Username, Password, Description string
 		fmt.Print("Новый сервис: ")
 		fmt.Scanln(&Service)
@@ -212,8 +218,13 @@ func (pm *PasswordManager) UpdatePasswordInteractive() error {
 		fmt.Print("Новое описание: ")
 		fmt.Scanln(&Description)
 
+		EncryptedPassword, err := pm.Encrypt(Password)
+		if err != nil {
+			return fmt.Errorf("ошибка шифрования пароля во время смены всей информации %v", err)
+		}
+
 		_, err5 := pm.db.Exec("UPDATE password_entries SET (service, username, password, description)=(?, ?, ?, ?) WHERE id=?",
-			Service, Username, Password, Description, id)
+			Service, Username, EncryptedPassword, Description, id)
 		if err5 != nil {
 			return fmt.Errorf("ошибка обновления данных: %v", err5)
 		}
