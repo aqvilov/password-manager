@@ -35,9 +35,15 @@ func NewPasswordManager(db *sql.DB, masterKey []byte) *PasswordManager {
 //Создания пароля
 
 func (pm *PasswordManager) CreatePasswordEntry(service, username, password, description string) error {
+
+	EncryptedPassword, err1 := pm.Encrypt(password) // шифровка пароля при создании
+	if err1 != nil {
+		return fmt.Errorf("ошибка шифрования пароля: %v", err1)
+	}
+
 	_, err := pm.db.Exec( // exec не возвращает данные, --> нам не нужно первое значение
 		`INSERT INTO password_entries(service, username, password, description) VALUES (?, ?, ?, ?)`,
-		service, username, password, description,
+		service, username, EncryptedPassword, description,
 	)
 	return err
 }
@@ -55,6 +61,11 @@ func (pm *PasswordManager) DeletePasswordEntry(id int) error {
 	return err
 }
 
+/* Для того, чтобы пароль в НЕзашифрованном виде видел только сам пользователь,
+при выводе ВСЕХ данных, необходимо расшифровать пароль, т.к добавили мы его
+в ЗАШИФРОВАННОМ виде (поэтому расшифровываем его в функции ниже)
+*/
+
 // Получение всех паролей
 
 func (pm *PasswordManager) GetAllPasswords() ([]PasswordEntry, error) {
@@ -71,13 +82,19 @@ func (pm *PasswordManager) GetAllPasswords() ([]PasswordEntry, error) {
 
 	for rows.Next() { // проходимся по каждой строке, которая содержит все (проще говоря проходимся по таблице)
 		structForCopy := PasswordEntry{}
+		var EncryptedPassword string
 
 		oneStringFromColumn := rows.Scan(&structForCopy.ID, &structForCopy.Service, &structForCopy.Username,
-			&structForCopy.Password, &structForCopy.Description) // КОПИРУЕМ ЦЕЛУЮ СТРОКУ В СОЗДАННУЮ НАМИ СТРУКТУРУ
-
+			&EncryptedPassword, &structForCopy.Description) // КОПИРУЕМ ЦЕЛУЮ СТРОКУ В СОЗДАННУЮ НАМИ СТРУКТУРУ
 		if oneStringFromColumn != nil {
 			return entries, oneStringFromColumn
 		}
+
+		DecryptedPassword, errTest := pm.Decrypt(EncryptedPassword, pm.masterKey)
+		if errTest != nil {
+			return nil, errTest
+		}
+		structForCopy.Password = DecryptedPassword
 
 		entries = append(entries, structForCopy)
 

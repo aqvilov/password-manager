@@ -39,7 +39,7 @@ func (pm *PasswordManager) Encrypt(plaintext string) (string, error) {
 
 // расшифровываем
 
-func Decrypt(encryptedText string, key []byte) (string, error) {
+func (pm *PasswordManager) Decrypt(encryptedText string, key []byte) (string, error) {
 	ciphertext, err := base64.StdEncoding.DecodeString(encryptedText)
 	if err != nil {
 		return "", fmt.Errorf("ошибка декодирования base64: %v", err)
