@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"password/modules"
+	"strconv"
 )
 
 func createDB() error {
@@ -25,6 +28,81 @@ func createDB() error {
 	}
 
 	return nil
+}
+
+func addPassword(pm *modules.PasswordManager) {
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Println("Добавляем что-то новое...")
+
+	fmt.Println("Введите название сервиса: ")
+	service, _ := reader.ReadString('\n')
+	service = service[:len(service)-1] // обрезаем переход на новую строку
+
+	fmt.Println("А теперь введите логин ( если не хотите, нажмите Enter )")
+	username, _ := reader.ReadString('\n')
+	if username == "" {
+		username = "" // поменять тут че-то бы
+	} else {
+		username = username[:len(username)-1]
+	}
+
+	fmt.Println("Введите пароль")
+	password, _ := reader.ReadString('\n')
+	password = password[:len(password)-1]
+
+	fmt.Println("Введите описание (если не хотите, нажмите Enter )")
+	description, _ := reader.ReadString('\n')
+	description = description[:len(description)-1]
+
+	add := pm.CreatePasswordEntry(service, username, password, description)
+	if add != nil {
+		return
+	} else {
+		fmt.Println("Данные успешно добавлены!")
+	}
+
+	showAllPasswords(pm)
+}
+
+func showAllPasswords(pm *modules.PasswordManager) {
+	ent, err := pm.GetAllPasswords()
+	if err != nil {
+		log.Fatal(" Ошибка получения паролей:", err)
+	}
+
+	if len(ent) == 0 {
+		fmt.Println("Пока что тут ничего нет;(")
+	} else {
+		fmt.Printf(" Всего записей: %d\n", len(ent))
+		for _, entry := range ent {
+			fmt.Printf("   ID: %d | Сервис: %s | Логин: %s | Пароль: %s\n",
+				entry.ID, entry.Service, entry.Username, entry.Password)
+		}
+	}
+}
+
+func deletePassword(pm *modules.PasswordManager) {
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Println("Введите ID пароля, который хотите удалить: ") // как-то переписать немного строчку ( странно звучит )
+	id, _ := reader.ReadString('\n')
+	id = id[:len(id)-1]
+
+	idInt, _ := strconv.Atoi(id)
+
+	for {
+		if idInt < 0 {
+			fmt.Printf("Введите корректное число!")
+		} else {
+			rm := pm.DeletePasswordEntry(idInt)
+			if rm != nil {
+				return
+			}
+		}
+
+	}
+
 }
 
 func main() {
@@ -101,11 +179,15 @@ func main() {
 	}
 	showAllPasswords(pm)
 
+	// проверка удаления пароля в main
+
 	testDeleting := pm.DeletePasswordEntry(1)
 	if testDeleting != nil {
 		return
 	}
 	showAllPasswords(pm)
+
+	//
 
 	err15 := pm.UpdatePasswordInteractive()
 	if err15 != nil {
@@ -113,21 +195,4 @@ func main() {
 	}
 	showAllPasswords(pm)
 
-}
-
-func showAllPasswords(pm *modules.PasswordManager) {
-	ent, err := pm.GetAllPasswords()
-	if err != nil {
-		log.Fatal(" Ошибка получения паролей:", err)
-	}
-
-	if len(ent) == 0 {
-		fmt.Println(" База данных пустая")
-	} else {
-		fmt.Printf(" Всего записей: %d\n", len(ent))
-		for _, entry := range ent {
-			fmt.Printf("   ID: %d | Сервис: %s | Логин: %s | Пароль: %s\n",
-				entry.ID, entry.Service, entry.Username, entry.Password)
-		}
-	}
 }
