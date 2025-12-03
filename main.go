@@ -56,6 +56,8 @@ func main() {
 		}
 	}(db)
 
+	fmt.Println("w4234")
+
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS password_entries (
 		id INT AUTO_INCREMENT PRIMARY KEY,

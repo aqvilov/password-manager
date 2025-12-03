@@ -2,6 +2,7 @@
 <dataSource name="password@localhost">
   <database-model serializer="dbm" dbms="MYSQL" family-id="MYSQL" format-version="4.53">
     <root id="1">
+      <DefaultAuthPlugin>caching_sha2_password</DefaultAuthPlugin>
       <DefaultCasing>lower/lower</DefaultCasing>
       <DefaultEngine>InnoDB</DefaultEngine>
       <DefaultTmpEngine>InnoDB</DefaultTmpEngine>
@@ -1012,7 +1013,7 @@ sys|schema||mysql.sys|localhost|TRIGGER|G</Grants>
       <AutoIntrospectionLevel>3</AutoIntrospectionLevel>
       <Current>1</Current>
       <LastIntrospectionLevel>3</LastIntrospectionLevel>
-      <LastIntrospectionLocalTimestamp>2025-12-02.13:13:07</LastIntrospectionLocalTimestamp>
+      <LastIntrospectionLocalTimestamp>2025-12-03.13:24:29</LastIntrospectionLocalTimestamp>
       <CollationName>utf8mb4_0900_ai_ci</CollationName>
     </schema>
     <schema id="292" parent="1" name="performance_schema">
@@ -1036,21 +1037,17 @@ sys|schema||mysql.sys|localhost|TRIGGER|G</Grants>
     <user id="298" parent="1" name="mysql.infoschema">
       <CanLogin>0</CanLogin>
       <Host>localhost</Host>
-      <Plugin>caching_sha2_password</Plugin>
     </user>
     <user id="299" parent="1" name="mysql.session">
       <CanLogin>0</CanLogin>
       <Host>localhost</Host>
-      <Plugin>caching_sha2_password</Plugin>
     </user>
     <user id="300" parent="1" name="mysql.sys">
       <CanLogin>0</CanLogin>
       <Host>localhost</Host>
-      <Plugin>caching_sha2_password</Plugin>
     </user>
     <user id="301" parent="1" name="root">
       <Host>localhost</Host>
-      <Plugin>caching_sha2_password</Plugin>
     </user>
     <table id="302" parent="291" name="password_entries">
       <DetailsLevel>3</DetailsLevel>
@@ -1058,7 +1055,7 @@ sys|schema||mysql.sys|localhost|TRIGGER|G</Grants>
       <CollationName>utf8mb4_0900_ai_ci</CollationName>
     </table>
     <column id="303" parent="302" name="id">
-      <AutoIncrement>1</AutoIncrement>
+      <AutoIncrement>3</AutoIncrement>
       <NotNull>1</NotNull>
       <Position>1</Position>
       <StoredType>int|0s</StoredType>

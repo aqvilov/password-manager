@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8f8f2c8-f334-4c0c-98df-895e7ac97587" name="Changes" comment="" />
+    <list default="true" id="a8f8f2c8-f334-4c0c-98df-895e7ac97587" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources/6232d3f7-ab14-45e8-b6e3-39252e39ccab.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/6232d3f7-ab14-45e8-b6e3-39252e39ccab.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/sqldialects.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/main.go" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -41,9 +46,10 @@
     "RunOnceActivity.go.formatter.settings.were.checked": "true",
     "RunOnceActivity.go.migrated.go.modules.settings": "true",
     "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
-    "git-widget-placeholder": "main",
+    "git-widget-placeholder": "master",
     "go.import.settings.migrated": "true",
     "go.sdk.automatically.set": "true",
+    "ignore.virus.scanning.warn.message": "true",
     "last_opened_file_path": "C:/Users/aqvil/Desktop/e44/password-manager-main",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -68,8 +74,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-gosdk-f466f9b0953e-3d2cccfc42a2-org.jetbrains.plugins.go.sharedIndexes.bundled-GO-252.23892.449" />
-        <option value="bundled-js-predefined-d6986cc7102b-e03c56caf84a-JavaScript-GO-252.23892.449" />
+        <option value="bundled-gosdk-f466f9b0953e-61a6b8fd16fd-org.jetbrains.plugins.go.sharedIndexes.bundled-GO-252.28238.32" />
+        <option value="bundled-js-predefined-d6986cc7102b-a71380e98a7c-JavaScript-GO-252.28238.32" />
       </set>
     </attachedChunks>
   </component>
