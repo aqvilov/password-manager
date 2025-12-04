@@ -41,10 +41,11 @@ func (pm *PasswordManager) CreatePasswordEntry(service, username, password, desc
 		return fmt.Errorf("ошибка шифрования пароля: %v", err1)
 	}
 
-	_, err := pm.db.Exec( // exec не возвращает данные, --> нам не нужно первое значение
-		`INSERT INTO password_entries(service, username, password, description) VALUES (?, ?, ?, ?)`,
-		service, username, EncryptedPassword, description,
-	)
+	query := `INSERT INTO password_entries(service, username, password, description) VALUES (?, ?, ?, ?)`
+	_, err := pm.db.Exec(query, service, username, EncryptedPassword, description)
+	if err != nil {
+		return fmt.Errorf("ошибка при сохранении в базу данных: %v", err)
+	}
 	return err
 }
 
@@ -90,7 +91,7 @@ func (pm *PasswordManager) GetAllPasswords() ([]PasswordEntry, error) {
 			return entries, oneStringFromColumn
 		}
 
-		DecryptedPassword, errTest := pm.Decrypt(EncryptedPassword, pm.masterKey)
+		DecryptedPassword, errTest := pm.Decrypt(EncryptedPassword)
 		if errTest != nil {
 			return nil, errTest
 		}

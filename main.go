@@ -38,23 +38,23 @@ func addPassword(pm *modules.PasswordManager) {
 
 	fmt.Println("Введите название сервиса: ")
 	service, _ := reader.ReadString('\n')
-	service = service[:len(service)-1] // обрезаем переход на новую строку
+	service = strings.TrimSpace(service) // обрезаем переход на новую строку
 
 	fmt.Println("А теперь введите логин ( если не хотите, нажмите Enter )")
 	username, _ := reader.ReadString('\n')
 	if username == "" {
 		username = "" // поменять тут че-то бы
 	} else {
-		username = username[:len(username)-1]
+		username = strings.TrimSpace(username)
 	}
 
 	fmt.Println("Введите пароль")
 	password, _ := reader.ReadString('\n')
-	password = password[:len(password)-1]
+	password = strings.TrimSpace(password)
 
 	fmt.Println("Введите описание (если не хотите, нажмите Enter )")
 	description, _ := reader.ReadString('\n')
-	description = description[:len(description)-1]
+	description = strings.TrimSpace(description)
 
 	add := pm.CreatePasswordEntry(service, username, password, description)
 	if add != nil {
@@ -63,7 +63,7 @@ func addPassword(pm *modules.PasswordManager) {
 		fmt.Println("Данные успешно добавлены!")
 	}
 
-	showAllPasswords(pm)
+	//showAllPasswords(pm)
 }
 
 func showAllPasswords(pm *modules.PasswordManager) {
@@ -79,6 +79,7 @@ func showAllPasswords(pm *modules.PasswordManager) {
 		for _, entry := range ent {
 			fmt.Printf("   ID: %d | Сервис: %s | Логин: %s | Пароль: %s\n",
 				entry.ID, entry.Service, entry.Username, entry.Password)
+			fmt.Println()
 		}
 	}
 }
@@ -154,6 +155,22 @@ func searchPassword(pm *modules.PasswordManager) {
 
 }
 
+func GreetingMenu() {
+	fmt.Println("\n" + strings.Repeat("═", 50))
+	fmt.Println("МЕНЕДЖЕР ПАРОЛЕЙ")
+	fmt.Println(strings.Repeat("═", 50))
+
+	fmt.Println("\n ГЛАВНОЕ МЕНЮ:")
+	fmt.Println("1.  Показать все пароли")
+	fmt.Println("2.  Добавить новый пароль")
+	fmt.Println("3.  Изменить существующий пароль")
+	fmt.Println("4.  Удалить пароль")
+	fmt.Println("5.  Поиск паролей")
+	// fmt.Println("6.  Очистить экран") // временно не работает
+	fmt.Println("0.  Выход")
+	fmt.Print("\nВыберите действие (0-6): ")
+}
+
 func main() {
 
 	checkDB := createDB()
@@ -214,19 +231,7 @@ func main() {
 	// главный цикл в main
 	for {
 		// приветственное меню
-		fmt.Println("\n" + strings.Repeat("═", 50))
-		fmt.Println("МЕНЕДЖЕР ПАРОЛЕЙ")
-		fmt.Println(strings.Repeat("═", 50))
-
-		fmt.Println("\n ГЛАВНОЕ МЕНЮ:")
-		fmt.Println("1.  Показать все пароли")
-		fmt.Println("2.  Добавить новый пароль")
-		fmt.Println("3.  Изменить существующий пароль")
-		fmt.Println("4.  Удалить пароль")
-		fmt.Println("5.  Поиск паролей")
-		// fmt.Println("6.  Очистить экран") // временно не работает
-		fmt.Println("0.  Выход")
-		fmt.Print("\nВыберите действие (0-6): ")
+		GreetingMenu()
 
 		mainReader := bufio.NewReader(os.Stdin)
 
@@ -241,18 +246,20 @@ func main() {
 		case "3":
 			err := pm.UpdatePasswordInteractive()
 			if err != nil {
-				fmt.Printf("\n❌ Ошибка: %v\n", err)
+				fmt.Printf("\n Ошибка: %v\n", err)
 			}
 		case "4":
 			deletePassword(pm)
 		case "5":
 			searchPassword(pm)
 		case "0":
+			fmt.Println()
 			fmt.Println("До свидания! Ваши пароли в безопасности!!!")
+			fmt.Println()
 			return
 		default:
 			fmt.Println("Ошибка! Введите число от 0 до 6!")
-			return
+			continue // НА ГЕНИАЛЫЧАХ!!!
 		}
 
 		// к каждой команде, кроме case 0, добавляем возможность вернуться в меню
