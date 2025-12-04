@@ -8,6 +8,7 @@ import (
 	"os"
 	"password/modules"
 	"strconv"
+	"strings"
 )
 
 func createDB() error {
@@ -86,7 +87,7 @@ func deletePassword(pm *modules.PasswordManager) {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("Введите ID пароля, который хотите удалить: ") // как-то переписать немного строчку ( странно звучит )
-	id, _ := reader.ReadString('\n')
+	id, _ := reader.ReadString('\n')                           // читает строку до нажатия enter
 	id = id[:len(id)-1]
 
 	idInt, _ := strconv.Atoi(id)
@@ -96,11 +97,59 @@ func deletePassword(pm *modules.PasswordManager) {
 			fmt.Printf("Введите корректное число!")
 		} else {
 			rm := pm.DeletePasswordEntry(idInt)
+			fmt.Println("Пароль успешно удален!)")
 			if rm != nil {
 				return
 			}
 		}
 
+	}
+
+}
+
+func searchPassword(pm *modules.PasswordManager) {
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Printf("\nВведите название сервиса для посика: \n")
+	service, _ := reader.ReadString('\n')
+	service = strings.TrimSpace(service) // убираем лишние символы по бокам
+
+	if service == "" {
+		fmt.Println("Ошибка: введите строку для поиска")
+		return
+	}
+
+	entries, err := pm.GetAllPasswords()
+	if err != nil {
+		fmt.Println("ошибка вывода")
+		return
+	}
+
+	fmt.Println("Поиск по названию: ", service)
+	fmt.Println(strings.Repeat("-", 30))
+
+	//ДЛЯ ЛЮБОГО ЦИКЛА, ПЕРВОЕ ЗНАЧЕНИЕ - ИНДЕКС ЭЛЕМЕНТА, ВТОРОЕ - ЕГО ЗНАЧЕНИЕ
+	for index, entry := range entries {
+		if strings.Contains(strings.ToLower(entry.Service), strings.ToLower(service)) || // поиск по серивсу
+			strings.Contains(strings.ToLower(entry.Username), strings.ToLower(service)) || // поиск по юзеру
+			strings.Contains(strings.ToLower(entry.Description), strings.ToLower(service)) { // поиск по описанию
+
+			//вывод данных
+			fmt.Println()
+			fmt.Print("№", index+1)
+			fmt.Printf("     ID: %d\n", entry.ID)
+			fmt.Printf("     Сервис: %s\n", entry.Service)
+			fmt.Printf("     Логин: %s\n", entry.Username)
+			fmt.Printf("     Пароль: %s\n", entry.Password)
+			if entry.Description != "" {
+				fmt.Printf("     Description: %s\n", entry.Description)
+			}
+			fmt.Println()
+			fmt.Println(strings.Repeat("-", 30))
+		} else {
+			fmt.Println("Ничего не найдено;(")
+			fmt.Println()
+		}
 	}
 
 }
@@ -134,8 +183,6 @@ func main() {
 		}
 	}(db)
 
-	fmt.Println("w4234")
-
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS password_entries (
 		id INT AUTO_INCREMENT PRIMARY KEY,
@@ -145,54 +192,74 @@ func main() {
 		description TEXT,
 		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	)`
+
+	// создание таблицы
 	_, errCreateTables := db.Exec(createTableSQL)
 	if errCreateTables != nil {
 		log.Fatal("ошибка создания таблиц", errCreateTables)
 	}
 
-	byteKey := []byte("my-32-byte-super-secret-key-1234")
-	fmt.Println(len(byteKey))
+	byteKey := []byte("my-32-byte-super-secret-key-1234") // пока что мастер ключ тут, потом перенесем в функцию
+	//fmt.Println("Длина ключа шифрования: ", len(byteKey))
 
 	pm := modules.NewPasswordManager(db, byteKey)
 
-	fmt.Println("Добавляем тестовый пароль")
-	err1 := pm.CreatePasswordEntry("Telegram", "Aqvi", "12345678", "test")
-	err2 := pm.CreatePasswordEntry("Telegram2", "Aqvi", "12345678", "test")
-	if err1 != nil {
-		log.Fatal(err1)
-	}
-	if err2 != nil {
-		log.Fatal(err2)
-	}
-	fmt.Println("Пароль добавлен!")
+	//делаем паузу перед началом
 
-	ent, err := pm.GetAllPasswords()
-	if err != nil {
-	}
+	reader := bufio.NewReader(os.Stdin)
 
-	if len(ent) == 0 {
-		log.Println("БАЗА ДАННЫХ ПУСТАЯ")
-	} else {
-		for _, entry := range ent {
-			fmt.Printf("%d. Сервис: %s | Логин: %s | Пароль: %s |\nОписание: %s\n", entry.ID, entry.Service, entry.Username, entry.Password, entry.Description)
+	fmt.Println("Нажмите Enter чтобы продолжить...")
+	reader.ReadString('\n')
+
+	// главный цикл в main
+	for {
+		// приветственное меню
+		fmt.Println("\n" + strings.Repeat("═", 50))
+		fmt.Println("МЕНЕДЖЕР ПАРОЛЕЙ")
+		fmt.Println(strings.Repeat("═", 50))
+
+		fmt.Println("\n ГЛАВНОЕ МЕНЮ:")
+		fmt.Println("1.  Показать все пароли")
+		fmt.Println("2.  Добавить новый пароль")
+		fmt.Println("3.  Изменить существующий пароль")
+		fmt.Println("4.  Удалить пароль")
+		fmt.Println("5.  Поиск паролей")
+		// fmt.Println("6.  Очистить экран") // временно не работает
+		fmt.Println("0.  Выход")
+		fmt.Print("\nВыберите действие (0-6): ")
+
+		mainReader := bufio.NewReader(os.Stdin)
+
+		choice, _ := mainReader.ReadString('\n') // читаем до Enter
+		choice = strings.TrimSpace(choice)
+
+		switch choice {
+		case "1":
+			showAllPasswords(pm)
+		case "2":
+			addPassword(pm)
+		case "3":
+			err := pm.UpdatePasswordInteractive()
+			if err != nil {
+				fmt.Printf("\n❌ Ошибка: %v\n", err)
+			}
+		case "4":
+			deletePassword(pm)
+		case "5":
+			searchPassword(pm)
+		case "0":
+			fmt.Println("До свидания! Ваши пароли в безопасности!!!")
+			return
+		default:
+			fmt.Println("Ошибка! Введите число от 0 до 6!")
+			return
 		}
+
+		// к каждой команде, кроме case 0, добавляем возможность вернуться в меню
+		if choice != "0" {
+			fmt.Print("\nНажмите Enter чтобы вернуться в меню...")
+			reader.ReadString('\n')
+		}
+
 	}
-	showAllPasswords(pm)
-
-	// проверка удаления пароля в main
-
-	testDeleting := pm.DeletePasswordEntry(1)
-	if testDeleting != nil {
-		return
-	}
-	showAllPasswords(pm)
-
-	//
-
-	err15 := pm.UpdatePasswordInteractive()
-	if err15 != nil {
-		return
-	}
-	showAllPasswords(pm)
-
 }
