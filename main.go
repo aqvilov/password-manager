@@ -9,11 +9,14 @@ import (
 	"password/modules"
 	"strconv"
 	"strings"
+
+	_ "github.com/lib/pq"
 )
 
 func createDB() error {
 	// подключаемся в Mysql
-	rootDB, err := sql.Open("mysql", "root:SQLpassforCon5@tcp(127.0.0.1:3306)/")
+	dataSourceName := "serverName=localhost;databaseName=password;user=postgres;password=SQLpassforCon5"
+	rootDB, err := sql.Open("postgres", dataSourceName)
 	if err != nil {
 		return fmt.Errorf("ошибка подключения к mysql: %v", err)
 	}
@@ -178,7 +181,8 @@ func main() {
 		log.Fatal("ошибка создания БД", checkDB)
 	}
 
-	db, err := sql.Open("mysql", "root:SQLpassforCon5@tcp(127.0.0.1:3306)/password") // password - name of database
+	dataSourceName := "host=localhost port=5432 user=postgres password=SQLpassforCon5 dbname=password sslmode=disable"
+	db, err := sql.Open("postgres", dataSourceName) // password - name of database
 	if err != nil {
 		return
 	}
@@ -202,12 +206,11 @@ func main() {
 
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS password_entries (
-		id INT AUTO_INCREMENT PRIMARY KEY,
-		service VARCHAR(255) NOT NULL,
-		username VARCHAR(255) NOT NULL,
+		id SERIAL PRIMARY KEY,
+		service VARCHAR(255),
+		username VARCHAR(255),
 		password TEXT NOT NULL,
 		description TEXT,
-		created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 	)`
 
 	// создание таблицы

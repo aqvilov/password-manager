@@ -41,7 +41,7 @@ func (pm *PasswordManager) CreatePasswordEntry(service, username, password, desc
 		return fmt.Errorf("ошибка шифрования пароля: %v", err1)
 	}
 
-	query := `INSERT INTO password_entries(service, username, password, description) VALUES (?, ?, ?, ?)`
+	query := "INSERT INTO password_entries (service, username, password, description) VALUES ($1, $2, $3, $4) RETURNING id"
 	_, err := pm.db.Exec(query, service, username, EncryptedPassword, description)
 	if err != nil {
 		return fmt.Errorf("ошибка при сохранении в базу данных: %v", err)
@@ -52,7 +52,7 @@ func (pm *PasswordManager) CreatePasswordEntry(service, username, password, desc
 // Удаление пароля
 
 func (pm *PasswordManager) DeletePasswordEntry(id int) error {
-	query := `DELETE FROM password_entries WHERE ID = ?`
+	query := `DELETE FROM password_entries WHERE ID = $1`
 
 	_, err := pm.db.Exec(query, id)
 	if err != nil {
@@ -170,7 +170,7 @@ func (pm *PasswordManager) UpdatePasswordInteractive() error {
 		fmt.Printf("Текущий сервис: %s\n", AllInfo.Service)
 		fmt.Print("Новый серис: ")
 		fmt.Scanln(&newService) //--------- -> ОБНОВИТ SERVICE ТОЛЬКО ГДЕ ID == ID
-		_, err1 := pm.db.Exec("UPDATE password_entries SET service=? WHERE id = ?", newService, id)
+		_, err1 := pm.db.Exec("UPDATE password_entries SET service=$1 WHERE id = $2", newService, id)
 		if err1 != nil {
 			return fmt.Errorf("ошибка обновления сервиса: %v", err)
 		}
@@ -195,7 +195,7 @@ func (pm *PasswordManager) UpdatePasswordInteractive() error {
 			return fmt.Errorf("ошибка шифрования пароля во время его смены %v", err)
 		}
 
-		_, err3 := pm.db.Exec("UPDATE password_entries SET password=? WHERE id=?", EncryptedPassword, id)
+		_, err3 := pm.db.Exec("UPDATE password_entries SET password=$1 WHERE id=$2", EncryptedPassword, id)
 		if err3 != nil {
 			return fmt.Errorf("ошибка обновления пароля: %v", err3)
 		}
@@ -204,7 +204,7 @@ func (pm *PasswordManager) UpdatePasswordInteractive() error {
 		fmt.Printf("Текущее описание: %s\n", AllInfo.Description)
 		fmt.Print("Новое описание: ")
 		fmt.Scanln(&newDescription)
-		_, err4 := pm.db.Exec("UPDATE	password_entries SET description=? WHERE id=?", newDescription, id)
+		_, err4 := pm.db.Exec("UPDATE	password_entries SET description=$1 WHERE id=$2", newDescription, id)
 		if err4 != nil {
 			return fmt.Errorf("ошибка обновления описания: %v", err4)
 		}
@@ -224,7 +224,7 @@ func (pm *PasswordManager) UpdatePasswordInteractive() error {
 			return fmt.Errorf("ошибка шифрования пароля во время смены всей информации %v", err)
 		}
 
-		_, err5 := pm.db.Exec("UPDATE password_entries SET (service, username, password, description)=(?, ?, ?, ?) WHERE id=?",
+		_, err5 := pm.db.Exec("UPDATE password_entries SET (service, username, password, description)=($1, $2, $3, $4) WHERE id=?",
 			Service, Username, EncryptedPassword, Description, id)
 		if err5 != nil {
 			return fmt.Errorf("ошибка обновления данных: %v", err5)
