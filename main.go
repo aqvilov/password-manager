@@ -14,21 +14,34 @@ import (
 )
 
 func createDB() error {
-	// подключаемся в Mysql
-	dataSourceName := "serverName=localhost;databaseName=password;user=postgres;password=SQLpassforCon5"
-	rootDB, err := sql.Open("postgres", dataSourceName)
+	connStr := "host=localhost port=5432 user=postgres password=SQLpassforCon5 dbname=password sslmode=disable"
+	rootDB, err := sql.Open("postgres", connStr)
 	if err != nil {
-		return fmt.Errorf("ошибка подключения к mysql: %v", err)
+		return fmt.Errorf("ошибка подключения к PostgreSQL: %v", err)
 	}
 	defer rootDB.Close()
 
 	if err := rootDB.Ping(); err != nil {
-		return fmt.Errorf("mysql не запущен: %v", err)
+		return fmt.Errorf("PostgreSQL не запущен: %v", err)
 	}
 
-	_, err = rootDB.Exec("CREATE DATABASE IF NOT EXISTS password")
+	var exists bool
+	err = rootDB.QueryRow(
+		"SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname = 'password')",
+	).Scan(&exists)
+
 	if err != nil {
-		return fmt.Errorf("не могу создать БД: %v", err)
+		return fmt.Errorf("ошибка проверки базы данных: %v", err)
+	}
+
+	if !exists {
+		_, err = rootDB.Exec("CREATE DATABASE password")
+		if err != nil {
+			return fmt.Errorf("не могу создать БД: %v", err)
+		}
+		fmt.Println("✅ База 'password' создана")
+	} else {
+		fmt.Println("✅ База 'password' уже существует")
 	}
 
 	return nil
@@ -181,8 +194,8 @@ func main() {
 		log.Fatal("ошибка создания БД", checkDB)
 	}
 
-	dataSourceName := "host=localhost port=5432 user=postgres password=SQLpassforCon5 dbname=password sslmode=disable"
-	db, err := sql.Open("postgres", dataSourceName) // password - name of database
+	connStr := "host=localhost port=5432 user=postgres password=SQLpassforCon5 dbname=password sslmode=disable"
+	db, err := sql.Open("postgres", connStr) // password - name of database
 	if err != nil {
 		return
 	}
@@ -210,7 +223,7 @@ func main() {
 		service VARCHAR(255),
 		username VARCHAR(255),
 		password TEXT NOT NULL,
-		description TEXT,
+		description TEXT
 	)`
 
 	// создание таблицы
