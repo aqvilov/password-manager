@@ -58,11 +58,7 @@ func addPassword(pm *modules.PasswordManager) {
 
 	fmt.Println("А теперь введите логин ( если не хотите, нажмите Enter )")
 	username, _ := reader.ReadString('\n')
-	if username == "" {
-		username = "" // поменять тут че-то бы
-	} else {
-		username = strings.TrimSpace(username)
-	}
+	username = strings.TrimSpace(username)
 
 	fmt.Println("Введите пароль")
 	password, _ := reader.ReadString('\n')
@@ -101,11 +97,12 @@ func showAllPasswords(pm *modules.PasswordManager) {
 }
 
 func deletePassword(pm *modules.PasswordManager) {
+
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("Введите ID пароля, который хотите удалить: ") // как-то переписать немного строчку ( странно звучит )
 	id, _ := reader.ReadString('\n')                           // читает строку до нажатия enter
-	id = id[:len(id)-1]
+	id = strings.TrimSpace(id)
 
 	idInt, _ := strconv.Atoi(id)
 
@@ -114,10 +111,11 @@ func deletePassword(pm *modules.PasswordManager) {
 			fmt.Printf("Введите корректное число!")
 		} else {
 			rm := pm.DeletePasswordEntry(idInt)
-			fmt.Println("Пароль успешно удален!)")
 			if rm != nil {
 				return
 			}
+			fmt.Println("Пароль успешно удален!)")
+			return
 		}
 
 	}
@@ -199,11 +197,6 @@ func main() {
 	if err != nil {
 		return
 	}
-
-	//очистка таблицы при запуске
-	//_, _ = db.Exec("DELETE FROM password_entries")
-	//_, _ = db.Exec("ALTER TABLE password_entries AUTO_INCREMENT = 1")
-	//fmt.Println("Таблица очищена от старых незашифрованных данных")
 
 	if err := db.Ping(); err != nil {
 		log.Fatal(err)
