@@ -97,6 +97,21 @@ func showAllPasswords(pm *modules.PasswordManager) {
 }
 
 func deletePassword(pm *modules.PasswordManager) {
+	fmt.Println("Все текущие пароли: ")
+	show, err := pm.GetAllPasswords()
+	if err != nil {
+		return
+	}
+
+	if len(show) == 0 {
+		fmt.Println("У вас пока нет никаих паролей")
+	}
+
+	for _, entry := range show {
+		fmt.Printf("ID: %d | Сервис: %s | Логин: %s\n",
+			entry.ID, entry.Service, entry.Username)
+	}
+	fmt.Println()
 
 	reader := bufio.NewReader(os.Stdin)
 
