@@ -13,6 +13,11 @@ import (
 	_ "github.com/lib/pq"
 )
 
+func masterKey() []byte { //temporary
+	masterKey := []byte("my-32-byte-super-secret-key-1234")
+	return masterKey
+}
+
 func createDB() error {
 	connStr := "host=localhost port=5432 user=postgres password=SQLpassforCon5 dbname=password sslmode=disable"
 	rootDB, err := sql.Open("postgres", connStr)
@@ -88,6 +93,7 @@ func showAllPasswords(pm *modules.PasswordManager) {
 		fmt.Println("Пока что тут ничего нет;(")
 	} else {
 		fmt.Printf(" Всего записей: %d\n", len(ent))
+		fmt.Println()
 		for _, entry := range ent {
 			fmt.Printf("   ID: %d | Сервис: %s | Логин: %s | Пароль: %s\n",
 				entry.ID, entry.Service, entry.Username, entry.Password)
@@ -97,6 +103,7 @@ func showAllPasswords(pm *modules.PasswordManager) {
 }
 
 func deletePassword(pm *modules.PasswordManager) {
+	// выводим текущие пароли для удобства пользователя
 	fmt.Println("Все текущие пароли: ")
 	show, err := pm.GetAllPasswords()
 	if err != nil {
@@ -240,7 +247,7 @@ func main() {
 		log.Fatal("ошибка создания таблиц", errCreateTables)
 	}
 
-	byteKey := []byte("my-32-byte-super-secret-key-1234") // пока что мастер ключ тут, потом перенесем в функцию
+	byteKey := masterKey() // пока что мастер ключ тут, потом перенесем в функцию
 	//fmt.Println("Длина ключа шифрования: ", len(byteKey))
 
 	pm := modules.NewPasswordManager(db, byteKey)
@@ -278,11 +285,13 @@ func main() {
 			searchPassword(pm)
 		case "0":
 			fmt.Println()
-			fmt.Println("До свидания! Ваши пароли в безопасности!!!")
+			fmt.Println("До свидания!\n Ваши пароли в безопасности!!!")
 			fmt.Println()
 			return
 		default:
 			fmt.Println("Ошибка! Введите число от 0 до 6!")
+			fmt.Println()
+			fmt.Println()
 			continue // НА ГЕНИАЛЫЧАХ!!!
 		}
 
