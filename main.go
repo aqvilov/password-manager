@@ -257,7 +257,12 @@ func main() {
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("Нажмите Enter чтобы продолжить...")
-	reader.ReadString('\n')
+	readString, _ := reader.ReadString('\n')
+	readString = strings.TrimSpace(readString)
+
+	if readString == "void" {
+		fmt.Println("Вы ввели секретное слово\nМожете посмотреть это видео: https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1")
+	}
 
 	// главный цикл в main
 	for {
