@@ -9,6 +9,7 @@ import (
 	"password/modules"
 	"strconv"
 	"strings"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -256,9 +257,28 @@ func main() {
 
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Println("Нажмите Enter чтобы продолжить...")
+	// анимация ожидания ввода текста/символа
+	var animation = []string{"...", ".. ", ".  ", "   "}
+	done := make(chan bool)
+
+	go func() {
+		for i := 0; ; i++ {
+			select {
+			case <-done:
+				return
+			default:
+				index := i % len(animation)
+				fmt.Printf("\r%s%s", "Нажмите Enter чтобы продолжить", animation[index])
+				time.Sleep(350 * time.Millisecond)
+			}
+		}
+
+	}()
+
 	readString, _ := reader.ReadString('\n')
 	readString = strings.TrimSpace(readString)
+
+	close(done) // закрываем канал --> передается сигнал --> return из цикла
 
 	if readString == "void" {
 		fmt.Println("Вы ввели секретное слово\nМожете посмотреть это видео: https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=RDdQw4w9WgXcQ&start_radio=1")
