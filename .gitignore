@@ -2,7 +2,12 @@
 .vscode/
 *.iml
 
-password.exe
+*.exe
+*.exe~
+*.dll
+*.dylib
+
+#!password.exe  // чтобы не забыть
 
 .env
 
