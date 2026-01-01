@@ -95,9 +95,9 @@ func showAllPasswords(pm *modules.PasswordManager) {
 	} else {
 		fmt.Printf(" Всего записей: %d\n", len(ent))
 		fmt.Println()
-		for _, entry := range ent {
+		for i, entry := range ent {
 			fmt.Printf("   ID: %d | Сервис: %s | Логин: %s | Пароль: %s\n",
-				entry.ID, entry.Service, entry.Username, entry.Password)
+				i+1, entry.Service, entry.Username, entry.Password)
 			fmt.Println()
 		}
 	}
@@ -115,9 +115,9 @@ func deletePassword(pm *modules.PasswordManager) {
 		fmt.Println("У вас пока нет никаих паролей")
 	}
 
-	for _, entry := range show {
+	for i, entry := range show {
 		fmt.Printf("ID: %d | Сервис: %s | Логин: %s\n",
-			entry.ID, entry.Service, entry.Username)
+			i+1, entry.Service, entry.Username)
 	}
 	fmt.Println()
 
@@ -129,11 +129,13 @@ func deletePassword(pm *modules.PasswordManager) {
 
 	idInt, _ := strconv.Atoi(id)
 
+	realID := show[idInt-1].ID
+
 	for {
-		if idInt < 0 {
+		if realID < 0 {
 			fmt.Printf("Введите корректное число!")
 		} else {
-			rm := pm.DeletePasswordEntry(idInt)
+			rm := pm.DeletePasswordEntry(realID)
 			if rm != nil {
 				return
 			}
