@@ -96,8 +96,8 @@ func showAllPasswords(pm *modules.PasswordManager) {
 		fmt.Printf(" Всего записей: %d\n", len(ent))
 		fmt.Println()
 		for i, entry := range ent {
-			fmt.Printf("   ID: %d | Сервис: %s | Логин: %s | Пароль: %s\n",
-				i+1, entry.Service, entry.Username, entry.Password)
+			fmt.Printf("   ID: %d | Сервис: %s | Логин: %s | Пароль: %s | Описание: %s\n",
+				i+1, entry.Service, entry.Username, entry.Password, entry.Description)
 			fmt.Println()
 		}
 	}
@@ -148,9 +148,9 @@ func deletePassword(pm *modules.PasswordManager) {
 }
 
 func searchPassword(pm *modules.PasswordManager) {
-	reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(os.Stdin) // читаем всю строку целиком
 
-	fmt.Printf("\nВведите название сервиса для посика: \n")
+	fmt.Printf("\nВведите название сервиса для поиска: \n")
 	service, _ := reader.ReadString('\n')
 	service = strings.TrimSpace(service) // убираем лишние символы по бокам
 
@@ -165,31 +165,36 @@ func searchPassword(pm *modules.PasswordManager) {
 		return
 	}
 
-	fmt.Println("Поиск по названию: ", service)
+	fmt.Println("\nПоиск по названию: ", service)
 	fmt.Println(strings.Repeat("-", 30))
 
-	//ДЛЯ ЛЮБОГО ЦИКЛА, ПЕРВОЕ ЗНАЧЕНИЕ - ИНДЕКС ЭЛЕМЕНТА, ВТОРОЕ - ЕГО ЗНАЧЕНИЕ
-	for index, entry := range entries {
-		if strings.Contains(strings.ToLower(entry.Service), strings.ToLower(service)) || // поиск по серивсу
-			strings.Contains(strings.ToLower(entry.Username), strings.ToLower(service)) || // поиск по юзеру
-			strings.Contains(strings.ToLower(entry.Description), strings.ToLower(service)) { // поиск по описанию
+	matchesCount := 0
 
+	for index, entry := range entries {
+
+		searchByService := strings.Contains(strings.ToLower(entry.Service), strings.ToLower(service))
+		searchByUser := strings.Contains(strings.ToLower(entry.Username), strings.ToLower(service))
+		searchByDescription := strings.Contains(strings.ToLower(entry.Description), strings.ToLower(service))
+
+		if searchByUser || searchByDescription || searchByService { // поиск по описанию
+			matchesCount++
 			//вывод данных
 			fmt.Println()
 			fmt.Print("№", index+1)
-			fmt.Printf("     ID: %d\n", entry.ID)
+			fmt.Printf("   ID: %d\n", entry.ID)
 			fmt.Printf("     Сервис: %s\n", entry.Service)
 			fmt.Printf("     Логин: %s\n", entry.Username)
 			fmt.Printf("     Пароль: %s\n", entry.Password)
-			if entry.Description != "" {
-				fmt.Printf("     Description: %s\n", entry.Description)
-			}
+			fmt.Printf("     Description: %s\n", entry.Description)
 			fmt.Println()
 			fmt.Println(strings.Repeat("-", 30))
-		} else {
-			fmt.Println("Ничего не найдено;(")
-			fmt.Println()
 		}
+	}
+
+	if matchesCount != 0 {
+		fmt.Printf("Найдено совпадений: %d\n", matchesCount)
+	} else {
+		fmt.Println("Совпадений не найдено ;(")
 	}
 
 }
