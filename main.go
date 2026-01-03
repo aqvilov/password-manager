@@ -45,9 +45,9 @@ func createDB() error {
 		if err != nil {
 			return fmt.Errorf("не могу создать БД: %v", err)
 		}
-		fmt.Println("✅ База 'password' создана")
+		fmt.Println(" База данных создана")
 	} else {
-		fmt.Println("✅ База 'password' уже существует")
+		fmt.Println(" База данных уже существует")
 	}
 
 	return nil
@@ -150,7 +150,7 @@ func deletePassword(pm *modules.PasswordManager) {
 func searchPassword(pm *modules.PasswordManager) {
 	reader := bufio.NewReader(os.Stdin) // читаем всю строку целиком
 
-	fmt.Printf("\nВведите название сервиса для поиска: \n")
+	fmt.Printf("\nВведите ключевые слова для поиска (Сервис, Логин, Описание): \n")
 	service, _ := reader.ReadString('\n')
 	service = strings.TrimSpace(service) // убираем лишние символы по бокам
 
@@ -181,7 +181,7 @@ func searchPassword(pm *modules.PasswordManager) {
 			//вывод данных
 			fmt.Println()
 			fmt.Print("№", index+1)
-			fmt.Printf("   ID: %d\n", entry.ID)
+			fmt.Printf("   ID: %d\n", entry.ID) // тут выводится неправильный id (nado fixit)
 			fmt.Printf("     Сервис: %s\n", entry.Service)
 			fmt.Printf("     Логин: %s\n", entry.Username)
 			fmt.Printf("     Пароль: %s\n", entry.Password)

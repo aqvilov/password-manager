@@ -124,7 +124,7 @@ func (pm *PasswordManager) UpdatePasswordInteractive() error {
 
 	// спрашиваем id, который надо менять
 	var id int
-	fmt.Print("\n🎯 Введите ID записи для изменения и нажмите Enter: ")
+	fmt.Print("\n Введите ID записи для изменения и нажмите Enter: ")
 	_, err12 := fmt.Scanln(&id) // Scnaln - в отличии от Scan, читает ДО НАЖАТИЯ ENTER!!!
 	if err12 != nil {
 		return fmt.Errorf("ошибка ввода выбора: %v", err)
@@ -163,7 +163,7 @@ func (pm *PasswordManager) UpdatePasswordInteractive() error {
 
 	switch choice {
 	case 0:
-		fmt.Println("❌ Отмена операции")
+		fmt.Println(" Отмена операции")
 		return nil
 	case 1: // меняем название сервиса
 		var newService string
