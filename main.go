@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"password/modules"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -210,9 +212,23 @@ func GreetingMenu() {
 	fmt.Println("3.  Изменить существующий пароль")
 	fmt.Println("4.  Удалить пароль")
 	fmt.Println("5.  Поиск паролей")
-	// fmt.Println("6.  Очистить экран") // временно не работает
+	fmt.Println("6.  Очистить экран") // временно не работает
 	fmt.Println("0.  Выход")
 	fmt.Print("\nВыберите действие (0-6): ")
+}
+
+func clearScreen() {
+
+	var cmd *exec.Cmd
+	if runtime.GOOS == "windows" {
+		cmd = exec.Command("cmd", "/c", "cls")
+	} else {
+		cmd = exec.Command("clear")
+	}
+
+	cmd.Stdout = os.Stdout // подключаем вывод к стандартному выводу нашей программы
+	cmd.Run()
+
 }
 
 func main() {
@@ -320,6 +336,9 @@ func main() {
 			fmt.Println("До свидания!\n Ваши пароли в безопасности!!!")
 			fmt.Println()
 			return
+		case "6":
+			clearScreen()
+
 		default:
 			fmt.Println("Ошибка! Введите число от 0 до 6!")
 			fmt.Println()
