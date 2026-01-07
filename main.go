@@ -125,8 +125,8 @@ func deletePassword(pm *modules.PasswordManager) {
 
 	reader := bufio.NewReader(os.Stdin)
 
-	fmt.Println("Введите ID пароля, который хотите удалить: ") // как-то переписать немного строчку ( странно звучит )
-	id, _ := reader.ReadString('\n')                           // читает строку до нажатия enter
+	fmt.Println("Введите ID пароля, который хотите удалить: ")
+	id, _ := reader.ReadString('\n') // читает строку до нажатия enter
 	id = strings.TrimSpace(id)
 
 	idInt, _ := strconv.Atoi(id)
@@ -211,7 +211,7 @@ func GreetingMenu() {
 	fmt.Println("3.  Изменить существующий пароль")
 	fmt.Println("4.  Удалить пароль")
 	fmt.Println("5.  Поиск паролей")
-	fmt.Println("6.  Очистить экран") // временно не работает
+	fmt.Println("6.  Очистить экран")
 	fmt.Println("0.  Выход")
 	fmt.Print("\nВыберите действие (0-6): ")
 }
