@@ -119,7 +119,7 @@ func deletePassword(pm *modules.PasswordManager) {
 
 	for i, entry := range show {
 		fmt.Printf("ID: %d | Сервис: %s | Логин: %s\n",
-			i+1, entry.Service, entry.Username)
+			i+1, entry.Service, entry.Username) // i + 1 это айди, который отображается пользователю (не айди из БД)
 	}
 	fmt.Println()
 
@@ -131,10 +131,10 @@ func deletePassword(pm *modules.PasswordManager) {
 
 	idInt, _ := strconv.Atoi(id)
 
-	realID := show[idInt-1].ID
+	realID := show[idInt-1].ID // восстанавливаем id из БДшки, чтобы программе работать с ним
 
 	for {
-		if realID < 0 {
+		if idInt < 0 {
 			fmt.Printf("Введите корректное число!")
 		} else {
 			rm := pm.DeletePasswordEntry(realID)
@@ -182,8 +182,7 @@ func searchPassword(pm *modules.PasswordManager) {
 			matchesCount++
 			//вывод данных
 			fmt.Println()
-			fmt.Print("№", index+1)
-			fmt.Printf("   ID: %d\n", entry.ID) // тут выводится неправильный id (nado fixit)
+			fmt.Printf("   ID: %d\n", index+1)
 			fmt.Printf("     Сервис: %s\n", entry.Service)
 			fmt.Printf("     Логин: %s\n", entry.Username)
 			fmt.Printf("     Пароль: %s\n", entry.Password)
