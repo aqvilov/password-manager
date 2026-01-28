@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"crypto/rand"
 	"database/sql"
 	"fmt"
 	"log"
@@ -13,16 +14,69 @@ import (
 	"strings"
 	"time"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
-func masterKey() []byte { //temporary
-	masterKey := []byte("my-32-byte-super-secret-key-1234")
-	return masterKey
+// initMasterKey читает или создает новый мастер-ключ шифрования
+func initMasterKey() []byte {
+	keyPath := "master.key"
+
+	// Пробуем прочитать существующий ключ
+	if data, err := os.ReadFile(keyPath); err == nil {
+		if len(data) == 32 {
+			fmt.Println("Ключ загружен из: ", keyPath)
+			return data
+		}
+		fmt.Println("Произошла ошибка\nСоздаю новый ключ")
+	}
+
+	// генерируем новый ключ
+	key := make([]byte, 32)
+	if _, err := rand.Read(key); err != nil {
+		log.Fatal("ошибка генерации ключа:", err)
+	}
+
+	// 0600 - сохраняем с правами владельца
+	if err := os.WriteFile(keyPath, key, 0600); err != nil {
+		log.Fatal("ошибка сохранения ключа:", err)
+	}
+
+	return key
+}
+
+// возвращает значение переменной окружения или значение по умолчанию
+func getEnv(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
+}
+
+func getDBConnectionString() string {
+	host := getEnv("DB_HOST", "localhost")
+	port := getEnv("DB_PORT", "5432")
+	user := getEnv("DB_USER", "postgres")
+	password := getEnv("DB_PASSWORD", "postgres")
+	dbname := getEnv("DB_NAME", "password")
+	sslmode := getEnv("DB_SSLMODE", "disable")
+
+	return fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", host, port, user, password, dbname, sslmode)
 }
 
 func createDB() error {
-	connStr := "host=localhost port=5432 user=postgres password=SQLpassforCon5 dbname=password sslmode=disable"
+	host := getEnv("DB_HOST", "localhost")
+	port := getEnv("DB_PORT", "5432")
+	user := getEnv("DB_USER", "postgres")
+	password := getEnv("DB_PASSWORD", "postgres")
+	sslmode := getEnv("DB_SSLMODE", "disable")
+
+	connStr := fmt.Sprintf( // для коннекта бд
+		"host=%s port=%s user=%s password=%s dbname=postgres sslmode=%s",
+		host, port, user, password, sslmode,
+	)
+
 	rootDB, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return fmt.Errorf("ошибка подключения к PostgreSQL: %v", err)
@@ -30,12 +84,14 @@ func createDB() error {
 	defer rootDB.Close()
 
 	if err := rootDB.Ping(); err != nil {
-		return fmt.Errorf("PostgreSQL не запущен: %v", err)
+		fmt.Errorf("ошибка: %v", err)
 	}
 
+	dbname := getEnv("DB_NAME", "password")
 	var exists bool
 	err = rootDB.QueryRow(
-		"SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname = 'password')",
+		"SELECT EXISTS(SELECT 1 FROM pg_database WHERE datname = $1)",
+		dbname,
 	).Scan(&exists)
 
 	if err != nil {
@@ -43,13 +99,13 @@ func createDB() error {
 	}
 
 	if !exists {
-		_, err = rootDB.Exec("CREATE DATABASE password")
+		_, err = rootDB.Exec(fmt.Sprintf("CREATE DATABASE %s", dbname))
 		if err != nil {
 			return fmt.Errorf("не могу создать БД: %v", err)
 		}
-		fmt.Println(" База данных создана")
+		fmt.Printf("База данных '%s' создана\n", dbname)
 	} else {
-		fmt.Println(" База данных уже существует")
+		fmt.Printf("База данных '%s' уже существует\n", dbname)
 	}
 
 	return nil
@@ -62,9 +118,9 @@ func addPassword(pm *modules.PasswordManager) {
 
 	fmt.Println("Введите название сервиса: ")
 	service, _ := reader.ReadString('\n')
-	service = strings.TrimSpace(service) // обрезаем переход на новую строку
+	service = strings.TrimSpace(service)
 
-	fmt.Println("А теперь введите логин ( если не хотите, нажмите Enter )")
+	fmt.Println("А теперь введите логин (если не хотите, нажмите Enter)")
 	username, _ := reader.ReadString('\n')
 	username = strings.TrimSpace(username)
 
@@ -72,7 +128,7 @@ func addPassword(pm *modules.PasswordManager) {
 	password, _ := reader.ReadString('\n')
 	password = strings.TrimSpace(password)
 
-	fmt.Println("Введите описание (если не хотите, нажмите Enter )")
+	fmt.Println("Введите описание (если не хотите, нажмите Enter)")
 	description, _ := reader.ReadString('\n')
 	description = strings.TrimSpace(description)
 
@@ -82,8 +138,6 @@ func addPassword(pm *modules.PasswordManager) {
 	} else {
 		fmt.Println("Данные успешно добавлены!")
 	}
-
-	//showAllPasswords(pm)
 }
 
 func showAllPasswords(pm *modules.PasswordManager) {
@@ -93,7 +147,7 @@ func showAllPasswords(pm *modules.PasswordManager) {
 	}
 
 	if len(ent) == 0 {
-		fmt.Println("Пока что тут ничего нет;(")
+		fmt.Println("Пока что тут ничего нет ;(")
 	} else {
 		fmt.Printf(" Всего записей: %d\n", len(ent))
 		fmt.Println()
@@ -114,19 +168,20 @@ func deletePassword(pm *modules.PasswordManager) {
 	}
 
 	if len(show) == 0 {
-		fmt.Println("У вас пока нет никаих паролей")
+		fmt.Println("У вас пока нет никаких паролей")
+		return
 	}
 
 	for i, entry := range show {
 		fmt.Printf("ID: %d | Сервис: %s | Логин: %s\n",
-			i+1, entry.Service, entry.Username) // i + 1 это айди, который отображается пользователю (не айди из БД)
+			i+1, entry.Service, entry.Username)
 	}
 	fmt.Println()
 
 	reader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("Введите ID пароля, который хотите удалить: ")
-	id, _ := reader.ReadString('\n') // читает строку до нажатия enter
+	id, _ := reader.ReadString('\n')
 	id = strings.TrimSpace(id)
 
 	idInt, _ := strconv.Atoi(id)
@@ -154,7 +209,7 @@ func searchPassword(pm *modules.PasswordManager) {
 
 	fmt.Printf("\nВведите ключевые слова для поиска (Сервис, Логин, Описание): \n")
 	service, _ := reader.ReadString('\n')
-	service = strings.TrimSpace(service) // убираем лишние символы по бокам
+	service = strings.TrimSpace(service)
 
 	if service == "" {
 		fmt.Println("Ошибка: введите строку для поиска")
@@ -173,14 +228,12 @@ func searchPassword(pm *modules.PasswordManager) {
 	matchesCount := 0
 
 	for index, entry := range entries {
-
 		searchByService := strings.Contains(strings.ToLower(entry.Service), strings.ToLower(service))
 		searchByUser := strings.Contains(strings.ToLower(entry.Username), strings.ToLower(service))
 		searchByDescription := strings.Contains(strings.ToLower(entry.Description), strings.ToLower(service))
 
-		if searchByUser || searchByDescription || searchByService { // поиск по описанию
+		if searchByUser || searchByDescription || searchByService {
 			matchesCount++
-			//вывод данных
 			fmt.Println()
 			fmt.Printf("   ID: %d\n", index+1)
 			fmt.Printf("     Сервис: %s\n", entry.Service)
@@ -197,7 +250,6 @@ func searchPassword(pm *modules.PasswordManager) {
 	} else {
 		fmt.Println("Совпадений не найдено ;(")
 	}
-
 }
 
 func GreetingMenu() {
@@ -217,7 +269,6 @@ func GreetingMenu() {
 }
 
 func clearScreen() {
-
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
 		cmd = exec.Command("cmd", "/c", "cls")
@@ -227,18 +278,31 @@ func clearScreen() {
 
 	cmd.Stdout = os.Stdout // подключаем вывод к стандартному выводу нашей программы
 	cmd.Run()
-
 }
 
 func main() {
+	// загружаем переменные из .env
+	if err := godotenv.Load(); err != nil {
+		// если их нет, то используем дефолтные значения
+		fmt.Println("Файл .env не найден, используются значения по умолчанию")
+	}
 
+	fmt.Println("\n" + strings.Repeat("═", 50))
+	fmt.Println("ИНИЦИАЛИЗАЦИЯ МЕНЕДЖЕРА ПАРОЛЕЙ")
+	fmt.Println(strings.Repeat("═", 50) + "\n")
+
+	// Создаем или загружаем мастер-ключ
+	byteKey := initMasterKey()
+
+	// Создаем базу данных если не существует
 	checkDB := createDB()
 	if checkDB != nil {
 		log.Fatal("ошибка создания БД", checkDB)
 	}
 
-	connStr := "host=localhost port=5432 user=postgres password=SQLpassforCon5 dbname=password sslmode=disable"
-	db, err := sql.Open("postgres", connStr) // password - name of database
+	// Подключаемся к базе данных
+	connStr := getDBConnectionString()
+	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		return
 	}
@@ -255,6 +319,7 @@ func main() {
 		}
 	}(db)
 
+	//если нет таблицы
 	createTableSQL := `
 	CREATE TABLE IF NOT EXISTS password_entries (
 		id SERIAL PRIMARY KEY,
@@ -264,22 +329,17 @@ func main() {
 		description TEXT
 	)`
 
-	// создание таблицы
 	_, errCreateTables := db.Exec(createTableSQL)
 	if errCreateTables != nil {
 		log.Fatal("ошибка создания таблиц", errCreateTables)
 	}
-
-	byteKey := masterKey() // пока что мастер ключ тут, потом перенесем в функцию
-	//fmt.Println("Длина ключа шифрования: ", len(byteKey))
 
 	pm := modules.NewPasswordManager(db, byteKey)
 
 	//делаем паузу перед началом
 
 	reader := bufio.NewReader(os.Stdin)
-
-	// анимация ожидания ввода текста/символа
+	// создаем анимацию ожидания
 	var animation = []string{"...", ".. ", ".  ", "   "}
 	done := make(chan bool)
 
