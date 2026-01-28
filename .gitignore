@@ -7,9 +7,15 @@
 *.dll
 *.dylib
 
-#!password.exe  // чтобы не забыть
-
 .env
+.env.local
+
+
+*.key
+master.key
+encryption.key
 
 *.log
 
+
+postgres_data/
