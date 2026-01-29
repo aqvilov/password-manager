@@ -1,10 +1,17 @@
-# 🔐 Менеджер Паролей на Go
+# 🔐 Password manager 'ppocket'
 
+- [Russian Version README](#Ru-Guide)
+- [English Version README](#En-Guide)
+
+---
+
+
+### Ru-Guide
 Безопасный консольный менеджер паролей с шифрованием AES-256 и безопасным хранением данных.
 
 ## Быстрый старт
 
-### Вариант 1: С Docker (рекомендуется)
+### Вариант 1: С Docker
 
 1. **Клонируйте репозиторий:**
    ```bash
@@ -169,8 +176,178 @@ cat .env
 **Решение:** 
 - Или удалите старую БД и создайте новую (потеряете все пароли)
 
-## 📄 Лицензия
 
-MIT License - можете свободно использовать и модифицировать.
+### En-Guide
+
+Secure console password manager with AES-256 encryption and secure data storage.
+
+## Quick Start
+
+### Option 1: With Docker
+
+1. **Clone the repository:**
+```bash
+   git clone https://github.com/your-username/password-manager.git
+   cd password-manager
+   ```
+
+2. **Run DOcker Desktop:**
+```bash
+   docker-compose up -d
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   go mod download
+   ```
+
+4. **Run the application:**
+   ```bash
+   docker attach password_manager_app
+   ```
+
+The following will be created automatically on first launch:
+- `password` database
+- `master.key` encryption master key
+- Table for storing passwords
+
+### Option 2: With a local database
+
+1. **Install PostgreSQL** (if not already installed)
+```https://www.postgresql.org/download/```
+
+2. **Edit `.env`** (if necessary):
+   ```env
+   DB_HOST=localhost
+   DB_PORT=5432
+   DB_USER=postgres
+   DB_PASSWORD=password
+   DB_NAME=name
+   DB_SSLMODE=disable
+   ```
+
+3. **Run the application:**
+```bash
+   go build password-manager
+
+   ./password-manager
+   ```
+
+## 📦 Dependencies
+
+```bash
+go get github.com/lib/pq
+go get github.com/joho/godotenv
+```
+
+## 🔧 Configuration
+
+### Master encryption key
+
+The master key is automatically generated on first launch and stored in the `master.key` file.
+
+⚠️ **IMPORTANT:**
+- **Keep `master.key` in a safe place!**
+- Without this file, you will not be able to decrypt your passwords.
+- Do not upload `master.key` to git (already in `.gitignore`).
+
+## 📖 Usage
+
+After launching the program, you will see the main menu:
+
+```
+═════════════════════════════════ ═════════════════
+PASSWORD MANAGER
+═══════════ ═════════════════════════════════ Main Menu:
+1.  Show all passwords
+2.  Add new password
+3.  Change existing password
+4.  Delete password
+5.  Search passwords
+6.  Clear screen
+0.  Exit
+
+### Examples of use
+
+**Add new password:**
+```
+Select action: 2
+Enter service name: GitHub
+Enter login: myusername
+Enter password: mySecurePassword123!
+Enter description: My main account
+```
+
+**Search for passwords:**
+```
+Select action: 5
+Enter keywords to search for: git
+```
+
+The program will find all entries containing “git” in the service name, login, or description.
+
+
+## 🔒 Security
+
+1. **Encryption:** All passwords are encrypted using AES-256 in GCM mode
+2. **Master key:** 32-byte key generated using `crypto/rand`
+3. **Access rights:** The `master.key` file is created with `0600` permissions (owner permissions)
+4. **Database:** Passwords are stored in encrypted form
+5. **Environment variables:** Confidential data is not hardcoded in the code
+6.
+
+## 🛠️ Development
+
+### Building the project
+
+```bash
+go build -o password-manager
+```
+
+
+### Stopping the database (Docker)
+
+```bash
+docker-compose down
+```
+
+### Complete cleanup (including data)
+
+```bash
+docker-compose down -v
+```
+
+## ⚠️ Troubleshooting
+
+### PostgreSQL is not running
+
+```
+PostgreSQL is not running: connection refused
+
+Try running:
+  docker-compose up -d
+or install PostgreSQL
+```
+
+**Solution:** Run `docker-compose up -d` or install PostgreSQL locally.
+
+### Database connection error
+
+Check the settings in the `.env` file:
+```bash
+cat .env
+```
+
+### DANGER ZONE
+
+If you have lost the `master.key` file, it is **impossible** to decrypt existing passwords.
+
+**Solution:**
+- Or delete the old database and create a new one (you will lose all passwords)
+
+Translated with DeepL.com (free version)
+
+
+
 
 ## aqvilov.
