@@ -1,4 +1,4 @@
-# 🔐 Password manager 'ppocket'
+# 🔐 Password manager ppocket
 
 - [Russian Version README](#Ru-Guide)
 - [English Version README](#En-Guide)
@@ -175,6 +175,7 @@ cat .env
 
 **Решение:** 
 - Или удалите старую БД и создайте новую (потеряете все пароли)
+- Если такая ситуация произошла, то в следующий раз сохраняйте master-key
 
 
 ### En-Guide
