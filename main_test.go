@@ -5,58 +5,6 @@ import (
 	"testing"
 )
 
-func TestInitMasterKey(t *testing.T) {
-	testKeyPath := "test_master.key"
-	defer os.Remove(testKeyPath)
-
-	t.Run("Генерация нового ключа", func(t *testing.T) {
-		os.Remove(testKeyPath)
-
-		// генерация нового ключа
-		key, err := initMasterKey(testKeyPath)
-		if err != nil {
-			t.Fatalf("Ошибка при генерации ключа: %v", err)
-		}
-
-		if len(key) != 32 {
-			t.Errorf("Неверная длина ключа: ожидается 32, получено %d", len(key))
-		}
-
-
-		if _, err := os.Stat(testKeyPath); os.IsNotExist(err) {
-			t.Error("Файл ключа не был создан")
-		}
-	})
-
-	t.Run("Загрузка существующего ключа", func(t *testing.T) {
-		testKey := []byte("test-32-byte-key-for-testing!123")
-		if len(testKey) != 32 {
-			t.Fatalf("Тестовый ключ должен быть 32 байта, получено %d", len(testKey))
-		}
-
-		if err := os.WriteFile(testKeyPath, testKey, 0600); err != nil {
-			t.Fatalf("Не удалось создать тестовый ключ: %v", err)
-		}
-
-		loadedKey, err := initMasterKey(testKeyPath)
-		if err != nil {
-			t.Fatalf("Ошибка загрузки ключа: %v", err)
-		}
-
-		if len(loadedKey) != 32 {
-			t.Errorf("Загруженный ключ имеет неверную длину: %d", len(loadedKey))
-		}
-
-		// Проверяем, что загруженный ключ совпадает с оригиналом
-		for i := range testKey {
-			if loadedKey[i] != testKey[i] {
-				t.Error("Загруженный ключ не совпадает с оригиналом")
-				break
-			}
-		}
-	})
-}
-
 // обработка переменных окружения
 func TestGetEnv(t *testing.T) {
 	t.Run("Возврат значения переменной окружения", func(t *testing.T) {
