@@ -13,7 +13,7 @@ func TestInitMasterKey(t *testing.T) {
 		os.Remove(testKeyPath)
 
 		// генерация нового ключа
-		key, err := InitMasterKey(testKeyPath)
+		key, err := initMasterKey(testKeyPath)
 		if err != nil {
 			t.Fatalf("Ошибка при генерации ключа: %v", err)
 		}
@@ -38,7 +38,7 @@ func TestInitMasterKey(t *testing.T) {
 			t.Fatalf("Не удалось создать тестовый ключ: %v", err)
 		}
 
-		loadedKey, err := InitMasterKey(testKeyPath)
+		loadedKey, err := initMasterKey(testKeyPath)
 		if err != nil {
 			t.Fatalf("Ошибка загрузки ключа: %v", err)
 		}
